@@ -32,6 +32,9 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [showBackToTop, setShowBackToTop] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [isMuted, setIsMuted] = useState(true) // Start muted for autoplay
+  const [needsUserInteraction, setNeedsUserInteraction] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -41,6 +44,258 @@ function App() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  // Handle user interaction to unmute and ensure playback
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      if (window.ytPlayer) {
+        try {
+          // Unmute immediately on user interaction
+          try {
+            if (window.ytPlayer.isMuted && window.ytPlayer.isMuted()) {
+              window.ytPlayer.unMute()
+              setIsMuted(false)
+            } else {
+              setIsMuted(false)
+            }
+          } catch (e) {
+            // Try direct unmute
+            try {
+              window.ytPlayer.unMute()
+              setIsMuted(false)
+            } catch (e2) {
+              console.error('Error unmuting:', e2)
+            }
+          }
+          
+          // Ensure playing
+          try {
+            const state = window.ytPlayer.getPlayerState()
+            if (state !== window.YT.PlayerState.PLAYING) {
+              window.ytPlayer.playVideo()
+            }
+            setIsPlaying(true)
+            setNeedsUserInteraction(false)
+          } catch (e) {
+            console.error('Error starting playback:', e)
+          }
+        } catch (e) {
+          console.error('Error on user interaction:', e)
+        }
+      }
+    }
+
+    // Listen for any user interaction to unmute (only once)
+    let handled = false
+    const wrappedHandler = () => {
+      if (!handled) {
+        handled = true
+        handleUserInteraction()
+      }
+    }
+
+    document.addEventListener('click', wrappedHandler, { once: true })
+    document.addEventListener('touchstart', wrappedHandler, { once: true })
+    document.addEventListener('keydown', wrappedHandler, { once: true })
+
+    return () => {
+      document.removeEventListener('click', wrappedHandler)
+      document.removeEventListener('touchstart', wrappedHandler)
+      document.removeEventListener('keydown', wrappedHandler)
+    }
+  }, [])
+
+  useEffect(() => {
+    let playerInitialized = false
+
+    function initializePlayer() {
+      if (playerInitialized || !window.YT || !window.YT.Player) {
+        return
+      }
+
+      const playerElement = document.getElementById('youtube-player')
+      if (!playerElement) {
+        setTimeout(initializePlayer, 100)
+        return
+      }
+
+      try {
+        playerInitialized = true
+        window.ytPlayer = new window.YT.Player('youtube-player', {
+          videoId: 'izge-rLlINE', // Heather by Conan Gray
+          playerVars: {
+            autoplay: 1,
+            mute: 1, // Start muted for autoplay, will unmute after interaction
+            loop: 1,
+            playlist: 'izge-rLlINE', // Required for loop to work
+            controls: 0,
+            modestbranding: 1,
+            rel: 0,
+            enablejsapi: 1,
+          },
+          events: {
+            onReady: (event) => {
+              try {
+                event.target.playVideo()
+                setIsPlaying(true)
+                setIsMuted(true) // Will be unmuted on user interaction
+                setNeedsUserInteraction(false)
+              } catch (e) {
+                console.log('Autoplay blocked, user interaction required')
+                setNeedsUserInteraction(true)
+              }
+            },
+            onStateChange: (event) => {
+              if (event.data === window.YT.PlayerState.PLAYING) {
+                setIsPlaying(true)
+                // Update mute status
+                try {
+                  if (event.target.isMuted && event.target.isMuted()) {
+                    setIsMuted(true)
+                  } else {
+                    setIsMuted(false)
+                  }
+                } catch (e) {
+                  // Ignore mute check errors
+                }
+              } else if (event.data === window.YT.PlayerState.PAUSED) {
+                setIsPlaying(false)
+              } else if (event.data === window.YT.PlayerState.ENDED) {
+                event.target.playVideo()
+              } else if (event.data === window.YT.PlayerState.BUFFERING) {
+                setIsPlaying(true)
+              }
+            },
+            onError: (event) => {
+              console.error('YouTube player error:', event.data)
+            },
+          },
+        })
+      } catch (e) {
+        console.error('Error initializing YouTube player:', e)
+        playerInitialized = false
+      }
+    }
+
+    // Check if API is already loaded
+    if (window.YT && window.YT.Player) {
+      setTimeout(initializePlayer, 100)
+    } else {
+      // Load the API
+      if (!window.onYouTubeIframeAPIReady) {
+        window.onYouTubeIframeAPIReady = () => {
+          setTimeout(initializePlayer, 100)
+        }
+      }
+
+      const existingScript = document.querySelector('script[src="https://www.youtube.com/iframe_api"]')
+      if (!existingScript) {
+        const tag = document.createElement('script')
+        tag.src = 'https://www.youtube.com/iframe_api'
+        tag.async = true
+        const firstScriptTag = document.getElementsByTagName('script')[0]
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+      } else {
+        // Script exists but API might not be ready yet
+        if (window.YT && window.YT.Player) {
+          setTimeout(initializePlayer, 100)
+        }
+      }
+    }
+
+    return () => {
+      if (window.ytPlayer && window.ytPlayer.destroy) {
+        try {
+          window.ytPlayer.destroy()
+        } catch (e) {
+          console.error('Error destroying player:', e)
+        }
+        window.ytPlayer = null
+      }
+    }
+  }, [])
+
+  const togglePlayPause = () => {
+    if (window.ytPlayer && window.ytPlayer.getPlayerState) {
+      try {
+        const state = window.ytPlayer.getPlayerState()
+        if (state === window.YT.PlayerState.PLAYING) {
+          window.ytPlayer.pauseVideo()
+          setIsPlaying(false)
+        } else {
+          // Ensure unmuted before playing
+          try {
+            if (window.ytPlayer.isMuted()) {
+              window.ytPlayer.unMute()
+              setIsMuted(false)
+            }
+          } catch (e) {
+            // Ignore mute errors
+          }
+          window.ytPlayer.playVideo()
+          setIsPlaying(true)
+          setNeedsUserInteraction(false)
+        }
+      } catch (e) {
+        console.error('Error toggling playback:', e)
+      }
+    } else if (needsUserInteraction && window.ytPlayer) {
+      // Try to start playback if it was blocked
+      try {
+        // Ensure unmuted
+        try {
+          if (window.ytPlayer.isMuted()) {
+            window.ytPlayer.unMute()
+            setIsMuted(false)
+          }
+        } catch (e) {
+          // Ignore mute errors
+        }
+        window.ytPlayer.playVideo()
+        setIsPlaying(true)
+        setNeedsUserInteraction(false)
+      } catch (e) {
+        console.error('Error starting playback:', e)
+      }
+    }
+  }
+
+  const toggleMute = () => {
+    if (window.ytPlayer) {
+      try {
+        // Check current mute status
+        let currentlyMuted = false
+        try {
+          currentlyMuted = window.ytPlayer.isMuted()
+        } catch (e) {
+          // If isMuted() doesn't work, use state
+          currentlyMuted = isMuted
+        }
+        
+        if (currentlyMuted) {
+          window.ytPlayer.unMute()
+          setIsMuted(false)
+        } else {
+          window.ytPlayer.mute()
+          setIsMuted(true)
+        }
+      } catch (e) {
+        console.error('Error toggling mute:', e)
+        // Fallback: toggle based on current state
+        try {
+          if (isMuted) {
+            window.ytPlayer.unMute()
+            setIsMuted(false)
+          } else {
+            window.ytPlayer.mute()
+            setIsMuted(true)
+          }
+        } catch (e2) {
+          console.error('Fallback mute toggle failed:', e2)
+        }
+      }
+    }
+  }
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId)
@@ -85,6 +340,46 @@ function App() {
 
   return (
     <div className="app">
+      {/* Hidden YouTube Player */}
+      <div 
+        id="youtube-player" 
+        style={{ 
+          position: 'fixed',
+          width: '320px',
+          height: '180px',
+          opacity: 0,
+          pointerEvents: 'none',
+          top: '-9999px',
+          left: '-9999px',
+          zIndex: -1
+        }}
+      ></div>
+
+      {/* Music Player */}
+      <div className="music-player">
+        <div className="music-player-content">
+          <div className="music-info">
+            <span className="music-note">🎵</span>
+            <div className="music-details">
+              <span className="music-title">Heather</span>
+              <span className="music-artist">Conan Gray</span>
+              {needsUserInteraction && (
+                <span className="music-hint">Click anywhere to start</span>
+              )}
+            </div>
+          </div>
+          <div className="music-controls">
+            <button 
+              className="music-status"
+              onClick={togglePlayPause}
+              aria-label={isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? '⏸' : '▶'}
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <header className={`header ${isScrolled ? 'scrolled' : ''}`}>
         <div className="header-container">
@@ -220,3 +515,4 @@ function App() {
 }
 
 export default App
+
