@@ -189,7 +189,6 @@ function App() {
           <span className="heart">💗</span>
           <span className="heart">💝</span>
         </div>
-        <p className="footer-signature">— Ahsan</p>
       </footer>
 
       {/* Back to Top Button */}
