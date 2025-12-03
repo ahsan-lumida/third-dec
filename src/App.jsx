@@ -89,7 +89,7 @@ function App() {
       <header className={`header ${isScrolled ? 'scrolled' : ''}`}>
         <div className="header-container">
           <h1 className="header-title" onClick={() => scrollToSection('hero')}>
-            Sweater Day for aniqa
+           3rd December for Aniqa
           </h1>
           <button 
             className={`menu-toggle ${isMenuOpen ? 'open' : ''}`}
