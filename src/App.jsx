@@ -111,7 +111,7 @@ function App() {
       {/* Flower Bouquet Section */}
       <section id="bouquet" className="bouquet-section">
         <div className="bouquet-container">
-          <h2 className="bouquet-title">First of all a flower bouquet for u</h2>
+          <h2 className="bouquet-title">First of all a bouquet for u</h2>
           <div className="bouquet-wrapper">
             <div className="bouquet">💐</div>
           </div>
