@@ -77,6 +77,12 @@
   padding: 0.5rem 0;
 }
 
+.header-nav a:focus {
+  outline: 2px solid var(--primary-pink);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
 .header-nav a::after {
   content: '';
   position: absolute;
@@ -184,6 +190,29 @@
   overflow: hidden;
 }
 
+.hero::after {
+  content: '✨';
+  position: absolute;
+  top: 20%;
+  left: 10%;
+  font-size: 1.5rem;
+  opacity: 0.6;
+  animation: sparkle 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.2) rotate(180deg);
+  }
+}
+
 .hero::before {
   content: '';
   position: absolute;
@@ -269,12 +298,25 @@
   color: var(--primary-pink-light);
   animation: bounce 2s ease-in-out infinite;
   opacity: 0.7;
-  transition: opacity 0.3s ease;
+  transition: all 0.3s ease;
   cursor: pointer;
+  background: rgba(255, 182, 193, 0.2);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 107, 157, 0.2);
 }
 
 .scroll-indicator:hover {
   opacity: 1;
+  transform: translateY(-5px) scale(1.1);
+  background: rgba(255, 182, 193, 0.3);
+  border-color: rgba(255, 107, 157, 0.4);
 }
 
 @keyframes bounce {
@@ -284,6 +326,10 @@
   50% {
     transform: translateY(-12px) scale(1.1);
   }
+}
+
+.scroll-indicator:active {
+  transform: translateY(-2px) scale(1.05);
 }
 
 @keyframes fadeInUp {
@@ -440,6 +486,11 @@
   opacity: 0;
   animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
   will-change: transform;
+}
+
+.sweater-card:focus {
+  outline: 2px solid var(--primary-pink);
+  outline-offset: 4px;
 }
 
 .sweater-card:nth-child(1) {
@@ -612,6 +663,11 @@
   overflow: hidden;
   letter-spacing: 0.01em;
   z-index: 1;
+}
+
+.reserve-btn:focus {
+  outline: 2px solid var(--primary-pink-dark);
+  outline-offset: 3px;
 }
 
 .reserve-btn::before {
@@ -868,17 +924,57 @@
 
 .footer-text {
   font-size: 1.2rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   color: var(--text-tertiary);
   font-weight: 500;
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
 }
 
 .footer-signature {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-style: italic;
   color: var(--text-secondary);
   font-family: 'Georgia', 'Times New Roman', serif;
   opacity: 0.9;
+  margin-top: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+
+/* Back to Top Button */
+.back-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-pink-light), var(--primary-pink));
+  border: 2px solid rgba(255, 107, 157, 0.3);
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 999;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.back-to-top:hover {
+  transform: translateY(-5px) scale(1.1);
+  box-shadow: var(--shadow-xl);
+  background: linear-gradient(135deg, var(--primary-pink), var(--primary-pink-dark));
+  border-color: rgba(255, 107, 157, 0.5);
+}
+
+.back-to-top:active {
+  transform: translateY(-2px) scale(1.05);
 }
 
 /* Floating Hearts */
@@ -1066,6 +1162,14 @@
 
   .footer {
     padding: 4rem 1.5rem 2.5rem;
+  }
+
+  .back-to-top {
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 45px;
+    height: 45px;
+    font-size: 1.25rem;
   }
 }
 

@@ -31,10 +31,12 @@ function App() {
   const [hearts, setHearts] = useState([])
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [showBackToTop, setShowBackToTop] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50)
+      setShowBackToTop(window.scrollY > 300)
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
@@ -124,7 +126,7 @@ function App() {
           <h1 className="hero-title">Sharing My Sweater With You ❤️</h1>
           <p className="hero-subtitle">Pick one (or more) to keep you warm and remind you of me</p>
         </div>
-        <div className="scroll-indicator">↓</div>
+        <div className="scroll-indicator" onClick={() => scrollToSection('sweaters')}>↓</div>
       </section>
 
       {/* Sweater Showcase */}
@@ -187,8 +189,19 @@ function App() {
           <span className="heart">💗</span>
           <span className="heart">💝</span>
         </div>
-        <p className="footer-text">For Aniqa</p>
+        <p className="footer-signature">— Ahsan</p>
       </footer>
+
+      {/* Back to Top Button */}
+      {showBackToTop && (
+        <button 
+          className="back-to-top"
+          onClick={() => scrollToSection('hero')}
+          aria-label="Back to top"
+        >
+          ↑
+        </button>
+      )}
 
       {/* Floating Hearts Animation */}
       {hearts.map((heart) => (
